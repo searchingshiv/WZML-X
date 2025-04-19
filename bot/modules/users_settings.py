@@ -1143,6 +1143,10 @@ async def edit_user_settings(client, query):
             "mirror" if data[2] in ["ddl_servers", "user_tds"] else "ddl_servers",
         )
         await event_handler(client, query, pfunc, rfunc)
+    elif data[2] == "lmeta":
+        print("✅ lmeta clicked")
+        await query.answer()
+        await update_user_settings(query, "lmeta", "leech")
     elif data[2] in [
         "lprefix",
         "lsuffix",
