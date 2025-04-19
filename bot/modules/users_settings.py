@@ -666,13 +666,15 @@ async def get_user_settings(from_user, key=None, edit_type=None, edit_mode=None)
     return text, button
 
 
-async def update_user_settings(
-    query, key=None, edit_type=None, edit_mode=None, msg=None, sdirect=False
-):
+async def update_user_settings(query, key=None, edit_type=None, edit_mode=None, msg=None, sdirect=False):
     msg, button = await get_user_settings(
-        msg.from_user if sdirect else query.from_user, key, edit_type, edit_mode
+        msg.from_user if sdirect else query.from_user,
+        key,
+        edit_type,
+        edit_mode
     )
     await editMessage(query if sdirect else query.message, msg, button)
+
 
 
 async def user_settings(client, message):
