@@ -486,6 +486,28 @@ async def get_user_settings(from_user, key=None, edit_type=None, edit_mode=None)
         buttons.ibutton("Back", f"userset {user_id} back mirror", "footer")
         buttons.ibutton("Close", f"userset {user_id} close", "footer")
         button = buttons.build_menu(2)
+    elif key == "lmeta":
+        val = user_dict.get("lmeta", config_dict.get("METADATA", {"metadata": []}))
+        if isinstance(val, str):
+            try:
+                val = json.loads(val)
+            except:
+                val = {"metadata": [val]}
+        lmeta_lines = val.get("metadata", [])
+        lmeta_display = escape("\n".join(lmeta_lines)) if lmeta_lines else "Not Set"
+        text += f"➲ <b>Current FFmpeg Metadata:</b>\n<code>{lmeta_display}</code>\n\n"
+        text += desp_dict[key][0]
+    
+        buttons.ibutton("📛 Set Title", f"userset {user_id} setmeta title")
+        buttons.ibutton("💬 Set Subtitle", f"userset {user_id} setmeta subtitle")
+        buttons.ibutton("🌐 Set Language", f"userset {user_id} setmeta language")
+        buttons.ibutton("🔈 Set Audio Title", f"userset {user_id} setmeta audio")
+        buttons.ibutton("👁️ View Full", f"userset {user_id} vmeta", "header")
+        buttons.ibutton("↻ Reset", f"userset {user_id} resetmeta", "header")
+        buttons.ibutton("Back", f"userset {user_id} back leech", "footer")
+        buttons.ibutton("Close", f"userset {user_id} close", "footer")
+        button = buttons.build_menu(2)
+
     elif edit_type:
         text = f"㊂ <b><u>{fname_dict[key]} Settings :</u></b>\n\n"
         if key == "rcc":
@@ -536,28 +558,7 @@ async def get_user_settings(from_user, key=None, edit_type=None, edit_mode=None)
                 buttons.ibutton(
                     "Enable Media Group", f"userset {user_id} mgroup", "header"
                 )
-        elif key == "lmeta":
-            val = user_dict.get("lmeta", config_dict.get("METADATA", {"metadata": []}))
-            if isinstance(val, str):
-                try:
-                    val = json.loads(val)
-                except:
-                    val = {"metadata": [val]}
-        
-            lmeta_lines = val.get("metadata", [])
-            lmeta_display = escape("\n".join(lmeta_lines)) if lmeta_lines else "Not Set"
-            text += f"➲ <b>Current FFmpeg Metadata:</b>\n<code>{lmeta_display}</code>\n\n"
-            text += desp_dict[key][0]
-        
-            buttons.ibutton("📛 Set Title", f"userset {user_id} setmeta title")
-            buttons.ibutton("💬 Set Subtitle", f"userset {user_id} setmeta subtitle")
-            buttons.ibutton("🌐 Set Language", f"userset {user_id} setmeta language")
-            buttons.ibutton("🔈 Set Audio Title", f"userset {user_id} setmeta audio")
-            buttons.ibutton("👁️ View Full", f"userset {user_id} vmeta", "header")
-            buttons.ibutton("↻ Reset", f"userset {user_id} resetmeta", "header")
-            buttons.ibutton("Back", f"userset {user_id} back leech", "footer")
-            buttons.ibutton("Close", f"userset {user_id} close", "footer")
-            button = buttons.build_menu(2)
+    
 
         elif key in ["lprefix", "lremname", "lsuffix", "lcaption", "ldump"]:
             set_exist = (
