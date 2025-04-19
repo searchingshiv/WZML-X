@@ -534,7 +534,30 @@ async def get_user_settings(from_user, key=None, edit_type=None, edit_mode=None)
                 buttons.ibutton(
                     "Enable Media Group", f"userset {user_id} mgroup", "header"
                 )
-        elif key in ["lprefix", "lremname", "lsuffix", "lcaption", "ldump", "lmeta"]:
+        elif key == "lmeta":
+            val = user_dict.get("lmeta", config_dict.get("METADATA", {"metadata": []}))
+            if isinstance(val, str):
+                try:
+                    val = json.loads(val)
+                except:
+                    val = {"metadata": [val]}
+        
+            lmeta_lines = val.get("metadata", [])
+            lmeta_display = escape("\n".join(lmeta_lines)) if lmeta_lines else "Not Set"
+            text += f"➲ <b>Current FFmpeg Metadata:</b>\n<code>{lmeta_display}</code>\n\n"
+            text += desp_dict[key][0]
+        
+            buttons.ibutton("📛 Set Title", f"userset {user_id} setmeta title")
+            buttons.ibutton("💬 Set Subtitle", f"userset {user_id} setmeta subtitle")
+            buttons.ibutton("🌐 Set Language", f"userset {user_id} setmeta language")
+            buttons.ibutton("🔈 Set Audio Title", f"userset {user_id} setmeta audio")
+            buttons.ibutton("👁️ View Full", f"userset {user_id} vmeta", "header")
+            buttons.ibutton("↻ Reset", f"userset {user_id} resetmeta", "header")
+            buttons.ibutton("Back", f"userset {user_id} back leech", "footer")
+            buttons.ibutton("Close", f"userset {user_id} close", "footer")
+            button = buttons.build_menu(2)
+
+        elif key in ["lprefix", "lremname", "lsuffix", "lcaption", "ldump"]:
             set_exist = (
                 "Not Exists"
                 if (
@@ -901,6 +924,40 @@ async def edit_user_settings(client, query):
         buttons.ibutton("Cʟᴏsᴇ", f"wzmlx {user_id} close")
         await sendMessage(message, from_user.mention, buttons.build_menu(1), thumb_path)
         await update_user_settings(query, "thumb", "leech")
+        
+    elif data[2] == "setmeta":
+        await query.answer()
+        meta_key = data[3]
+        meta_prompt = {
+            "title": "Send the <b>Video Title</b>:",
+            "subtitle": "Send the <b>Subtitle Title</b>:",
+            "language": "Send the <b>Subtitle Language Code</b> (e.g., <code>eng</code>):",
+            "audio": "Send the <b>Audio Track Title</b>:"
+        }[meta_key]
+    
+        pfunc = partial(save_meta_input, meta_type=meta_key, pre_event=query)
+        rfunc = partial(update_user_settings, query, "lmeta", "leech")
+        await sendMessage(query.message, meta_prompt)
+        await event_handler(client, query, pfunc, rfunc)
+    elif data[2] == "resetmeta":
+        user_data[query.from_user.id]["lmeta"] = {"metadata": []}
+        await query.answer("Metadata Reset!")
+        await update_user_settings(query, "lmeta", "leech")
+        if DATABASE_URL:
+            await DbManger().update_user_data(query.from_user.id)
+
+    elif data[2] == "vmeta":
+        meta = user_data.get(query.from_user.id, {}).get("lmeta", {"metadata": []})
+        if isinstance(meta, str):
+            try:
+                meta = json.loads(meta)
+            except:
+                meta = {"metadata": [meta]}
+        output = "\n".join(meta.get("metadata", [])) or "No metadata set."
+        await sendCustomMsg(query.from_user.id, f"<b>Saved FFmpeg Metadata:</b>\n\n<code>{escape(output)}</code>")
+        await query.answer("Sent in PM!", show_alert=True)
+    
+
     elif data[2] == "show_tds":
         handler_dict[user_id] = False
         user_tds = user_dict.get("user_tds", {})
@@ -1227,6 +1284,41 @@ async def send_users_settings(client, message):
         await sendMessage(message, msg, button)
     else:
         await sendMessage(message, f"{userid} have not saved anything..")
+        
+async def save_meta_input(client, message, meta_type, pre_event):
+    user_id = message.from_user.id
+    user_dict = user_data.get(user_id, {})
+    meta_text = message.text.strip()
+
+    # Load or create metadata dict
+    lmeta = user_dict.get("lmeta", {"metadata": []})
+    if isinstance(lmeta, str):
+        try:
+            lmeta = json.loads(lmeta)
+        except:
+            lmeta = {"metadata": []}
+
+    # Remove old entry of this type
+    def remove_old(lines, prefix):
+        return [line for line in lines if not line.startswith(prefix)]
+
+    prefix_map = {
+        "title": "-metadata title=",
+        "subtitle": "-metadata:s:s title=",
+        "language": "-metadata:s:s language=",
+        "audio": "-metadata:s:a title="
+    }
+
+    prefix = prefix_map[meta_type]
+    lmeta["metadata"] = remove_old(lmeta.get("metadata", []), prefix)
+
+    # Add new entry
+    lmeta["metadata"].append(f"{prefix}'{meta_text}'")
+    update_user_ldata(user_id, "lmeta", lmeta)
+    await deleteMessage(message)
+
+    if DATABASE_URL:
+        await DbManger().update_user_data(user_id)
 
 
 bot.add_handler(
