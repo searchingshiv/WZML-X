@@ -1152,7 +1152,6 @@ async def edit_user_settings(client, query):
         "mprefix",
         "msuffix",
         "mremname",
-        "lmeta",
     ]:
         handler_dict[user_id] = False
         await query.answer()
