@@ -949,9 +949,6 @@ async def edit_user_settings(client, query):
         await update_user_settings(query, "lmeta", "leech")
         if DATABASE_URL:
             await DbManger().update_user_data(query.from_user.id)
-    elif data[2] == "lmeta":
-        await query.answer()
-        await update_user_settings(query, "lmeta", "leech")
 
     elif data[2] == "vmeta":
         meta = user_data.get(query.from_user.id, {}).get("lmeta", {"metadata": []})
