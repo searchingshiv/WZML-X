@@ -1146,9 +1146,11 @@ async def edit_user_settings(client, query):
         )
         await event_handler(client, query, pfunc, rfunc)
     elif data[2] == "lmeta":
-        print("✅ lmeta clicked")
         await query.answer()
-        await update_user_settings(query, "lmeta", "leech")
+        handler_dict[user_id] = False
+        await get_user_settings(from_user, key="lmeta", edit_type="leech", edit_mode=True)
+        await update_user_settings(query, "lmeta", "leech", edit_mode=True)
+
     elif data[2] in [
         "lprefix",
         "lsuffix",
