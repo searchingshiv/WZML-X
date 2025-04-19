@@ -439,10 +439,12 @@ async def get_user_settings(from_user, key=None, edit_type=None, edit_mode=None)
             if (val := user_dict.get("lmeta", config_dict.get("METADATA", ""))) == ""
             else val
         )
+        lmeta_val = user_dict.get("lmeta", config_dict.get("METADATA", {}))
         buttons.ibutton(
-            f"{'✅️' if lmeta != 'Not Exists' else ''} Metadata",
+            f"{'✅️' if lmeta_val else ''} Metadata",
             f"userset {user_id} lmeta",
         )
+
 
         text = BotTheme(
             "LEECH",
